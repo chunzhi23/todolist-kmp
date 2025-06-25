@@ -27,21 +27,23 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.datetime.LocalDate
+import org.kharis.todolist.model.Task
+import org.kharis.todolist.state.LocalTodoState
 import org.kharis.todolist.theme.AppColor
 import org.kharis.todolist.theme.LocalAppColors
 import org.kharis.todolist.ui.component.CircledIconButton
 
 @Composable
-fun TodoField() {
+fun TodoField(selectedDate: LocalDate) {
     val colors = LocalAppColors.current
+    val todoState = LocalTodoState.current
 
     Row(
         modifier = Modifier.fillMaxWidth(),
     ) {
         var text by remember { mutableStateOf("") }
-        val hintVisible by remember {
-            derivedStateOf { text.isEmpty() }
-        }
+        val hintVisible by remember { derivedStateOf { text.isEmpty() } }
 
         Box(
             modifier =
@@ -82,7 +84,12 @@ fun TodoField() {
         Spacer(Modifier.width(8.dp))
         CircledIconButton(
             icon = Icons.Rounded.Add,
-            onClick = {},
+            onClick = {
+                if (text.isNotBlank()) {
+                    todoState.addTask(selectedDate, Task(text = text))
+                    text = ""
+                }
+            },
         )
     }
 }

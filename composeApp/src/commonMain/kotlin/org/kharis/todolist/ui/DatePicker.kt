@@ -23,13 +23,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import kotlinx.datetime.Clock
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
-import kotlinx.datetime.toLocalDateTime
 import org.kharis.todolist.ui.component.CircledIconButton
 
 @Composable
@@ -40,16 +37,10 @@ expect fun PlatformDatePickerDialog(
 )
 
 @Composable
-fun DatePickerRow() {
-    var selectedDate by remember {
-        mutableStateOf(
-            Clock.System
-                .now()
-                .toLocalDateTime(TimeZone.currentSystemDefault())
-                .date,
-        )
-    }
-
+fun DatePickerRow(
+    selectedDate: LocalDate,
+    onDateChange: (LocalDate) -> Unit,
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Center,
@@ -58,7 +49,7 @@ fun DatePickerRow() {
         CircledIconButton(
             icon = Icons.Rounded.ChevronLeft,
             onClick = {
-                selectedDate = selectedDate.minus(DatePeriod(days = 1))
+                onDateChange(selectedDate.minus(DatePeriod(days = 1)))
             },
         )
 
@@ -66,7 +57,7 @@ fun DatePickerRow() {
 
         DatePickerButton(
             selectedDate = selectedDate,
-            onDateChange = { selectedDate = it },
+            onDateChange = onDateChange,
         )
 
         Spacer(modifier = Modifier.width(16.dp))
@@ -74,7 +65,7 @@ fun DatePickerRow() {
         CircledIconButton(
             icon = Icons.Rounded.ChevronRight,
             onClick = {
-                selectedDate = selectedDate.plus(DatePeriod(days = 1))
+                onDateChange(selectedDate.plus(DatePeriod(days = 1)))
             },
         )
     }

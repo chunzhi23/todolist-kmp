@@ -12,19 +12,23 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import kotlinx.datetime.LocalDate
+import org.kharis.todolist.state.LocalTodoState
 import org.kharis.todolist.theme.AppColor
 import org.kharis.todolist.theme.LocalAppColors
 import org.kharis.todolist.ui.component.RoundedRoleButton
 
 @Composable
-fun Toolbar() {
+fun Toolbar(selectedDate: LocalDate) {
     val colors = LocalAppColors.current
+    val todoState = LocalTodoState.current
 
     Row(modifier = Modifier.fillMaxWidth()) {
+        /** UNDO */
         RoundedRoleButton(
             modifier = Modifier.weight(1f),
             colorRole = AppColor.SurfaceDim,
-            onClick = { /* Undo */ },
+            onClick = { todoState.undo() },
         ) {
             Icon(
                 Icons.AutoMirrored.Rounded.Undo,
@@ -32,26 +36,26 @@ fun Toolbar() {
                 tint = colors.fg(AppColor.SurfaceDim),
             )
         }
-
         Spacer(Modifier.width(8.dp))
 
+        /** REMOVE ALL */
         RoundedRoleButton(
             modifier = Modifier.weight(1f),
             colorRole = AppColor.Error,
-            onClick = { /* 전체 삭제 */ },
+            onClick = { todoState.deleteAll(selectedDate) },
         ) {
             Text(
                 text = "전체 삭제",
                 color = colors.fg(AppColor.Error),
             )
         }
-
         Spacer(Modifier.width(8.dp))
 
+        /** REDO */
         RoundedRoleButton(
             modifier = Modifier.weight(1f),
             colorRole = AppColor.SurfaceDim,
-            onClick = { /* Redo */ },
+            onClick = { todoState.redo() },
         ) {
             Icon(
                 Icons.AutoMirrored.Rounded.Redo,
