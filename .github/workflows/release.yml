@@ -1,4 +1,4 @@
-name: Release Please
+name: Release and Upload APK
 
 on:
   push:
@@ -9,7 +9,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Run release-please
@@ -23,11 +23,11 @@ jobs:
 
   build-and-upload:
     needs: release
-    if: ${{ steps.release.outputs.release_created }}
+    if: ${{ needs.release.outputs.release_created == 'true' }}
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up JDK
@@ -36,12 +36,13 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Build APK
-        run: |
-          chmod +x ./gradlew
-          ./gradlew assembleRelease
+      - name: Grant execute permission to Gradle
+        run: chmod +x ./gradlew
 
-      - name: Upload APK to release
+      - name: Build release APK
+        run: ./gradlew assembleRelease
+
+      - name: Upload APK to GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           files: app/build/outputs/apk/release/app-release.apk
