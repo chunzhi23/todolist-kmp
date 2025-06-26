@@ -6,29 +6,26 @@ on:
       - main
 
 jobs:
-  release:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Run release-please
-        id: release
-        uses: google-github-actions/release-please-action@v4
-        with:
-          release-type: simple
-          package-name: your-app-name
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  build-and-upload:
-    needs: release
-    if: ${{ needs.release.outputs.release_created == 'true' }}
+  build-and-release:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Extract version from latest commit message
+        id: extract_version
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          echo "Latest commit message: $COMMIT_MSG"
+          if [[ $COMMIT_MSG =~ v([0-9]+\.[0-9]+\.[0-9]+) ]]; then
+            VERSION=${BASH_REMATCH[0]}
+            echo "VERSION=$VERSION" >> $GITHUB_ENV
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "❌ No version found in commit message (e.g. v1.2.3)"
+            exit 1
+          fi
 
       - name: Set up JDK
         uses: actions/setup-java@v4
@@ -36,15 +33,18 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Grant execute permission to Gradle
-        run: chmod +x ./gradlew
+      - name: Build APK
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleRelease
 
-      - name: Build release APK
-        run: ./gradlew assembleRelease
-
-      - name: Upload APK to GitHub Release
+      - name: Create GitHub release
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ steps.extract_version.outputs.version }}
+          name: Release ${{ steps.extract_version.outputs.version }}
+          draft: false
+          prerelease: false
           files: app/build/outputs/apk/release/app-release.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
